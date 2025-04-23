@@ -1,12 +1,27 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import FirebaseAuth from '../components/FirebaseAuth.vue'
-import ToolForm from '../components/ToolForm.vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 
+import Dashboard from '../views/Dashboard.vue'
+import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
+import Library from '../views/Library.vue'
+
 const routes = [
-  { path: '/', redirect: '/auth' },
-  { path: '/auth', component: FirebaseAuth },
-  { path: '/dang', component: ToolForm }
+  { path: '/', redirect: '/dashboard' },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: Dashboard,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/library',
+    name: 'Library',
+    component: Library,
+    meta: { requiresAuth: true }
+  },
+  { path: '/login', name: 'Login', component: Login },
+  { path: '/register', name: 'Register', component: Register }
 ]
 
 const router = createRouter({
@@ -14,12 +29,14 @@ const router = createRouter({
   routes
 })
 
+// Global navigation guard
 router.beforeEach((to, from, next) => {
-  const requiresAuth = to.path === '/dang'
   const auth = getAuth()
-  onAuthStateChanged(auth, (user) => {
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+
+  onAuthStateChanged(auth, user => {
     if (requiresAuth && !user) {
-      next('/auth')
+      next('/login')
     } else {
       next()
     }
