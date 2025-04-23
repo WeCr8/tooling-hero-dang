@@ -108,7 +108,7 @@
   const fieldValues = ref({})
   const unit = ref('imperial')
   const holderPlatform = ref('1')
-  const buildNumber = ref('001') // Will auto-update below
+  const buildNumber = ref('000') // Will auto-update below
   
   const activeTool = computed(() =>
     toolDefinitions.value.find(t => t.tool_name === selectedToolName.value)
@@ -159,7 +159,7 @@
       const maxBuild = Math.max(...numbers)
       buildNumber.value = String(maxBuild + 1).padStart(3, '0')
     } else {
-      buildNumber.value = '001'
+      buildNumber.value = '000'
     }
   })
   
