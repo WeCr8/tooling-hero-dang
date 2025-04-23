@@ -1,11 +1,16 @@
 <template>
-  <div class="flex justify-center items-center min-h-screen">
-    <div id="firebaseui-auth-container" class="p-6 w-full max-w-md bg-white shadow rounded"></div>
+  <div class="flex justify-center items-center min-h-screen bg-[#F5F7FA]">
+    <div class="p-6 w-full max-w-md bg-white shadow-xl rounded-lg">
+      <h1 class="text-2xl font-bold text-center text-[#1B2A41] mb-4">
+        Sign in to Tooling Hero
+      </h1>
+      <div id="firebaseui-auth-container"></div>
+    </div>
   </div>
 </template>
 
 <script>
-import { getAuth, GoogleAuthProvider, EmailAuthProvider } from 'firebase/auth'
+import { getAuth } from 'firebase/auth'
 import * as firebaseui from 'firebaseui'
 import 'firebaseui/dist/firebaseui.css'
 
@@ -14,15 +19,27 @@ export default {
   mounted() {
     const auth = getAuth()
     const uiConfig = {
-      signInSuccessUrl: '/dang',
+      signInSuccessUrl: '/dashboard',
       signInOptions: [
-        GoogleAuthProvider.PROVIDER_ID,
-        EmailAuthProvider.PROVIDER_ID
+        {
+          provider: 'google.com',
+          scopes: ['profile', 'email']
+        },
+        {
+          provider: 'apple.com'
+        },
+        {
+          provider: 'password'
+        }
       ],
-      credentialHelper: firebaseui.auth.CredentialHelper.NONE
+      credentialHelper: firebaseui.auth.CredentialHelper.NONE,
+      tosUrl: '/terms',
+      privacyPolicyUrl: '/privacy'
     }
 
-    const ui = firebaseui.auth.AuthUI.getInstance() || new firebaseui.auth.AuthUI(auth)
+    const ui =
+      firebaseui.auth.AuthUI.getInstance() ||
+      new firebaseui.auth.AuthUI(auth)
     ui.start('#firebaseui-auth-container', uiConfig)
   }
 }

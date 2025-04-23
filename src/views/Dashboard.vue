@@ -64,7 +64,7 @@
     <!-- Navigation Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <router-link
-        to="/tools/new"
+        to="/DANG"
         class="bg-blue-600 text-white font-medium py-3 px-4 rounded hover:bg-blue-700 text-center"
       >
         🆕 Create New Tool ID
