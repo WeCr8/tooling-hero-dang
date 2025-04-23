@@ -11,8 +11,8 @@ const routes = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: Dashboard,
-    meta: { requiresAuth: true }
+    component: Dashboard
+    // public route — accessible by anyone
   },
   {
     path: '/library',
@@ -20,8 +20,18 @@ const routes = [
     component: Library,
     meta: { requiresAuth: true }
   },
-  { path: '/login', name: 'Login', component: Login },
-  { path: '/register', name: 'Register', component: Register }
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login,
+    meta: { guestOnly: true }
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: Register,
+    meta: { guestOnly: true }
+  }
 ]
 
 const router = createRouter({
@@ -29,18 +39,31 @@ const router = createRouter({
   routes
 })
 
-// Global navigation guard
+let authResolved = false
+
 router.beforeEach((to, from, next) => {
   const auth = getAuth()
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const guestOnly = to.matched.some(record => record.meta.guestOnly)
 
-  onAuthStateChanged(auth, user => {
+  const resolveNavigation = (user) => {
     if (requiresAuth && !user) {
-      next('/login')
-    } else {
-      next()
+      return next('/login')
     }
-  })
+    if (guestOnly && user) {
+      return next('/dashboard')
+    }
+    return next()
+  }
+
+  if (authResolved) {
+    resolveNavigation(auth.currentUser)
+  } else {
+    onAuthStateChanged(auth, user => {
+      authResolved = true
+      resolveNavigation(user)
+    })
+  }
 })
 
 export default router
