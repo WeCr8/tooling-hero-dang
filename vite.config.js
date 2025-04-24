@@ -1,16 +1,16 @@
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import path from 'path'
 
 export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
+      '@': fileURLToPath(new URL('./src', import.meta.url)) // ✅ Robust alias support
+    }
   },
   server: {
-    port: 5173,         // Default Vite port (can customize if needed)
-    host: true,         // Allows external devices to connect (good for testing mobile/tablet)
+    port: 5173,  // You can change this if needed
+    host: true   // External network access (useful for mobile testing)
   }
 })

@@ -1,55 +1,55 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { auth } from '@/firebase/init'
+import { onAuthStateChanged } from 'firebase/auth'
 
-import Dashboard from '../views/Dashboard.vue'
-import Login from '../views/Login.vue'
-import Register from '../views/Register.vue'
-import Library from '../views/Library.vue'
-import Account from '../views/Account.vue'
-import DANG from '../views/DANG.vue' // ✅ Create Tool ID
+
+// Views
+import Dashboard from '@/views/Dashboard.vue'
+import Login from '@/views/Login.vue'
+import Register from '@/views/Register.vue'
+import Library from '@/views/Library.vue'
+import Account from '@/views/Account.vue'
+import DANG from '@/views/DANG.vue'
+
+
 
 const routes = [
   { path: '/', redirect: '/dashboard' },
-
-  {
-    path: '/DANG',
-    name: 'DANG',
-    component: DANG
-    // public route for creating new tool IDs
-  },
-
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: Dashboard
+    component: Dashboard,
+    meta: { layout: 'DefaultLayout', requiresAuth: true }
   },
-
+  {
+    path: '/DANG',
+    name: 'DANG',
+    component: DANG,
+    meta: { layout: 'DefaultLayout' } // Public
+  },
   {
     path: '/library',
     name: 'Library',
     component: Library,
-    meta: { requiresAuth: true }
+    meta: { layout: 'DefaultLayout', requiresAuth: true }
   },
-
   {
     path: '/account',
     name: 'Account',
     component: Account,
-    meta: { requiresAuth: true }
+    meta: { layout: 'DefaultLayout', requiresAuth: true }
   },
-
   {
     path: '/login',
     name: 'Login',
     component: Login,
-    meta: { guestOnly: true }
+    meta: { layout: 'AuthLayout', guestOnly: true }
   },
-
   {
     path: '/register',
     name: 'Register',
     component: Register,
-    meta: { guestOnly: true }
+    meta: { layout: 'AuthLayout', guestOnly: true }
   }
 ]
 
@@ -61,16 +61,15 @@ const router = createRouter({
 let authResolved = false
 
 router.beforeEach((to, from, next) => {
-  const auth = getAuth()
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const guestOnly = to.matched.some(record => record.meta.guestOnly)
 
   const resolveNavigation = (user) => {
     if (requiresAuth && !user) {
-      return next('/login')
+      return next({ name: 'Login' })
     }
     if (guestOnly && user) {
-      return next('/dashboard')
+      return next({ name: 'Dashboard' })
     }
     return next()
   }
