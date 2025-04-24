@@ -5,7 +5,7 @@
       Create New <span class="text-[#0077B6]">DANG</span> Tool ID & Description 🔧
     </h1>
     <p class="text-sm text-gray-500 text-center">
-      Fill it out like a pro, or just guess and let DANG help you look smart.
+      Fill it out like a pro, or just guess and let DANG tool help you look smart.
     </p>
 
     <!-- Tool Type Dropdown -->
