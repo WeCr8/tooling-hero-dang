@@ -14,58 +14,15 @@ import Settings from '@/views/Settings.vue'
 import DANG from '@/views/DANG.vue'
 
 const routes = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Home,
-    meta: { layout: 'MarketingLayout' }
-  },
-  {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: Dashboard,
-    meta: { layout: 'DefaultLayout', requiresAuth: true }
-  },
-  {
-    path: '/DANG',
-    name: 'DANG',
-    component: DANG,
-    meta: { layout: 'DefaultLayout', requiresAuth: true }
-  },
-  {
-    path: '/library',
-    name: 'Library',
-    component: Library,
-    meta: { layout: 'DefaultLayout', requiresAuth: true, requiresSubscription: true }
-  },
-  {
-    path: '/account',
-    name: 'Account',
-    component: Account,
-    meta: { layout: 'DefaultLayout', requiresAuth: true }
-  },
-  {
-    path: '/settings',
-    name: 'Settings',
-    component: Settings,
-    meta: { layout: 'DefaultLayout', requiresAuth: true }
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: Login,
-    meta: { layout: 'AuthLayout', guestOnly: true }
-  },
-  {
-    path: '/register',
-    name: 'Register',
-    component: Register,
-    meta: { layout: 'AuthLayout', guestOnly: true }
-  },
-  {
-    path: '/:pathMatch(.*)*',
-    redirect: '/'
-  }
+  { path: '/', name: 'Home', component: Home, meta: { layout: 'MarketingLayout' }},
+  { path: '/dashboard', name: 'Dashboard', component: Dashboard, meta: { layout: 'DefaultLayout', requiresAuth: true }},
+  { path: '/DANG', name: 'DANG', component: DANG, meta: { layout: 'DefaultLayout', requiresAuth: true }},
+  { path: '/library', name: 'Library', component: Library, meta: { layout: 'DefaultLayout', requiresAuth: true, requiresSubscription: true }},
+  { path: '/account', name: 'Account', component: Account, meta: { layout: 'DefaultLayout', requiresAuth: true }},
+  { path: '/settings', name: 'Settings', component: Settings, meta: { layout: 'DefaultLayout', requiresAuth: true }},
+  { path: '/login', name: 'Login', component: Login, meta: { layout: 'AuthLayout', guestOnly: true }},
+  { path: '/register', name: 'Register', component: Register, meta: { layout: 'AuthLayout', guestOnly: true }},
+  { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 
 const router = createRouter({
@@ -76,29 +33,21 @@ const router = createRouter({
 let authResolved = false
 
 router.beforeEach(async (to, from, next) => {
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const guestOnly = to.matched.some(record => record.meta.guestOnly)
-  const requiresSubscription = to.matched.some(record => record.meta.requiresSubscription)
+  const requiresAuth = to.matched.some(r => r.meta.requiresAuth)
+  const guestOnly = to.matched.some(r => r.meta.guestOnly)
+  const requiresSubscription = to.matched.some(r => r.meta.requiresSubscription)
 
   const resolveNavigation = async (user) => {
-    if (requiresAuth && !user) {
-      return next({ name: 'Login' })
-    }
-
-    if (guestOnly && user) {
-      return next({ name: 'Dashboard' })
-    }
-
+    if (requiresAuth && !user) return next({ name: 'Login' })
+    if (guestOnly && user) return next({ name: 'Dashboard' })
     if (requiresSubscription && user) {
       const userDoc = await getDoc(doc(db, 'users', user.uid))
       const subscription = userDoc.data()?.subscription
-
       if (!subscription || subscription.status !== 'active') {
         alert('⚠️ You need an active subscription to access the Library!')
         return next({ name: 'Dashboard' })
       }
     }
-
     return next()
   }
 
@@ -107,7 +56,7 @@ router.beforeEach(async (to, from, next) => {
   if (authResolved) {
     await resolveNavigation(currentAuth.currentUser)
   } else {
-    onAuthStateChanged(currentAuth, async user => {
+    onAuthStateChanged(currentAuth, async (user) => {
       authResolved = true
       await resolveNavigation(user)
     })

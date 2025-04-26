@@ -1,7 +1,8 @@
 <template>
   <div>
-    <!-- Global Login/Register Modal -->
+    <!-- Global Modals -->
     <LoginRegisterModal ref="loginModalRef" />
+    <DemoModal ref="demoModalRef" />
 
     <!-- Dynamic Layouts -->
     <component :is="layoutComponent">
@@ -19,14 +20,18 @@ import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import MarketingLayout from '@/layouts/MarketingLayout.vue'
 
-// Modal
+// Modals
 import LoginRegisterModal from '@/components/LoginRegisterModal.vue'
+import DemoModal from '@/components/DemoModal.vue'
 
 const route = useRoute()
 
-// Allow any component (like Navbar) to access the modal globally
+// Provide modal references globally (Navbar, Home, etc. can use them)
 const loginModalRef = ref(null)
+const demoModalRef = ref(null)
+
 provide('loginModalRef', loginModalRef)
+provide('demoModalRef', demoModalRef)
 
 // Dynamically pick layout
 const layoutComponent = computed(() => {

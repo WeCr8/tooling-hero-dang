@@ -23,7 +23,7 @@
         <input v-model="phone" type="text" class="input" />
       </div>
 
-      <!-- Company / Role -->
+      <!-- Role (readonly) -->
       <div>
         <label class="block font-medium text-sm mb-1">Role</label>
         <input :value="role" type="text" class="input opacity-60 cursor-not-allowed" disabled />
@@ -54,10 +54,9 @@ import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore'
 
 const displayName = ref('')
 const email = ref('')
-const role = ref('')
 const phone = ref('')
+const role = ref('')
 const teamId = ref('')
-
 const status = ref('')
 const error = ref('')
 
@@ -75,13 +74,18 @@ onMounted(async () => {
     if (userDoc.exists()) {
       const data = userDoc.data()
       displayName.value = data.displayName || ''
-      role.value = data.role || 'viewer'
       phone.value = data.phone || ''
+      role.value = data.role || 'viewer'
       teamId.value = data.teamId || ''
     }
   } catch (err) {
-    console.error('Failed to load user profile', err)
+    console.error('Failed to load user profile:', err)
     error.value = 'Failed to load profile.'
+  }
+
+  // 🌙 Apply dark mode if needed
+  if (localStorage.getItem('theme') === 'dark') {
+    document.documentElement.classList.add('dark')
   }
 })
 
@@ -92,20 +96,10 @@ const saveProfile = async () => {
   try {
     await updateProfile(user, { displayName: displayName.value })
 
-    const userRef = doc(db, 'users', user.uid)
-
-    await updateDoc(userRef, {
+    await updateDoc(doc(db, 'users', user.uid), {
       displayName: displayName.value,
       phone: phone.value
     })
-
-    // Update also under team members if needed
-    if (teamId.value) {
-      const memberRef = doc(db, `teams/${teamId.value}/members/${user.uid}`)
-      await updateDoc(memberRef, {
-        displayName: displayName.value
-      })
-    }
 
     status.value = '✅ Profile updated successfully!'
     error.value = ''

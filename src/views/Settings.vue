@@ -4,7 +4,7 @@
       ⚙️ Settings
     </h1>
 
-    <!-- Team Management Section -->
+    <!-- Team Management -->
     <section>
       <h2 class="text-xl font-semibold mb-4">Team Members</h2>
 
@@ -25,7 +25,7 @@
             </div>
           </div>
 
-          <div v-if="isAdmin && member.id !== auth.currentUser.uid" class="flex gap-2">
+          <div v-if="isAdmin && member.id !== currentUserId" class="flex gap-2">
             <button
               @click="promoteToAdmin(member)"
               v-if="member.role !== 'admin'"
@@ -44,7 +44,7 @@
       </ul>
     </section>
 
-    <!-- Invite Member Section (Admins Only) -->
+    <!-- Invite -->
     <section v-if="isAdmin" class="pt-8 border-t dark:border-gray-700">
       <h2 class="text-xl font-semibold mb-4">Invite New Member</h2>
 
@@ -65,7 +65,7 @@
       </div>
     </section>
 
-    <!-- Dark Mode Setting -->
+    <!-- Appearance -->
     <section class="pt-8 border-t dark:border-gray-700">
       <h2 class="text-xl font-semibold mb-4">Appearance</h2>
 
@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { auth, db } from '@/firebase/init'
 import { doc, getDoc, collection, getDocs, setDoc, deleteDoc } from 'firebase/firestore'
 
@@ -90,6 +90,8 @@ const error = ref('')
 
 const teamId = ref('')
 const userRole = ref('')
+const currentUserId = ref('')
+
 const darkMode = ref(localStorage.getItem('theme') === 'dark')
 
 const isAdmin = computed(() => userRole.value === 'admin')
@@ -98,18 +100,29 @@ onMounted(async () => {
   const user = auth.currentUser
   if (!user) return
 
+  currentUserId.value = user.uid
+
   const userSnap = await getDoc(doc(db, 'users', user.uid))
   teamId.value = userSnap.data()?.teamId
   userRole.value = userSnap.data()?.role
 
   if (!teamId.value) return
 
+  await fetchMembers()
+
+  // Apply dark mode if necessary
+  if (darkMode.value) {
+    document.documentElement.classList.add('dark')
+  }
+})
+
+const fetchMembers = async () => {
   const membersSnap = await getDocs(collection(db, `teams/${teamId.value}/members`))
   members.value = membersSnap.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
   }))
-})
+}
 
 const inviteMember = async () => {
   if (!inviteEmail.value || !inviteRole.value) return
@@ -128,12 +141,7 @@ const inviteMember = async () => {
     inviteEmail.value = ''
     inviteRole.value = 'viewer'
 
-    // Refresh members list
-    const membersSnap = await getDocs(collection(db, `teams/${teamId.value}/members`))
-    members.value = membersSnap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }))
+    await fetchMembers()
   } catch (err) {
     console.error('Error inviting member:', err)
     error.value = err.message
@@ -145,7 +153,7 @@ const removeMember = async (member) => {
   if (!confirm(`Remove ${member.email} from team?`)) return
 
   await deleteDoc(doc(db, `teams/${teamId.value}/members/${member.id}`))
-  members.value = members.value.filter(m => m.id !== member.id)
+  await fetchMembers()
 }
 
 const promoteToAdmin = async (member) => {
@@ -153,15 +161,9 @@ const promoteToAdmin = async (member) => {
     ...member,
     role: 'admin'
   })
-
-  const membersSnap = await getDocs(collection(db, `teams/${teamId.value}/members`))
-  members.value = membersSnap.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }))
+  await fetchMembers()
 }
 
-// Handle Dark Mode Toggle
 const toggleDarkMode = () => {
   if (darkMode.value) {
     document.documentElement.classList.add('dark')
