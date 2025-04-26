@@ -1,14 +1,14 @@
-
 <template>
-  <div class="max-w-4xl mx-auto mt-10 p-6 bg-white shadow rounded space-y-6">
-    <h1 class="text-3xl font-extrabold text-[#1B2A41] text-center">
+  <div class="max-w-4xl mx-auto mt-16 p-6 bg-white dark:bg-gray-800 rounded shadow space-y-6">
+    <h1 class="text-3xl font-extrabold text-center text-[#1B2A41] dark:text-white">
       Create New <span class="text-[#0077B6]">DANG</span> Tool ID & Description 🔧
     </h1>
-    <p class="text-sm text-gray-500 text-center">
-      Fill it out like a pro, or just guess and let DANG tool help you look smart.
+
+    <p class="text-sm text-gray-500 dark:text-gray-300 text-center">
+      Fill it out like a pro, or just guess and let DANG help you look smart.
     </p>
 
-    <!-- Tool Type Dropdown -->
+    <!-- Tool Type -->
     <div>
       <label class="block font-semibold mb-1">Tool Type</label>
       <select v-model="selectedToolName" class="input">
@@ -19,7 +19,7 @@
       </select>
     </div>
 
-    <!-- Abbreviation & Unit System -->
+    <!-- Abbreviation + Unit System -->
     <div v-if="activeTool" class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block font-semibold mb-1">Tool Abbreviation</label>
@@ -29,13 +29,19 @@
       <div>
         <label class="block font-semibold mb-1">Unit System</label>
         <div class="flex gap-2">
-          <button :class="['input text-sm text-center w-full', unit === 'imperial' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border-gray-300']" @click="unit = 'imperial'">Imperial (in)</button>
-          <button :class="['input text-sm text-center w-full', unit === 'metric' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border-gray-300']" @click="unit = 'metric'">Metric (mm)</button>
+          <button
+            :class="unit === 'imperial' ? activeBtn : inactiveBtn"
+            @click="unit = 'imperial'"
+          >Inch (in)</button>
+          <button
+            :class="unit === 'metric' ? activeBtn : inactiveBtn"
+            @click="unit = 'metric'"
+          >Metric (mm)</button>
         </div>
       </div>
     </div>
 
-    <!-- Holder Platform -->
+    <!-- Holder -->
     <div v-if="activeTool" class="mt-4">
       <label class="block font-semibold mb-1">Holder Platform</label>
       <select v-model="holderPlatform" class="input">
@@ -47,46 +53,48 @@
       </select>
     </div>
 
-    <!-- Dynamic Input Fields -->
+    <!-- Dynamic Fields -->
     <div v-if="activeTool" class="space-y-4 mt-4">
       <div v-for="field in extractedFields" :key="field">
         <label class="block text-sm font-medium mb-1">
           {{ field }} <span class="text-gray-400 text-xs">{{ unit === 'imperial' ? '(in)' : '(mm)' }}</span>
         </label>
-        <input v-model="fieldValues[field]" type="text" class="input" :placeholder="`Enter ${field}`" />
+        <input v-model="fieldValues[field]" class="input" :placeholder="`Enter ${field}`" />
       </div>
     </div>
 
-    <!-- Tool ID Output -->
-    <div v-if="generatedToolID" class="mt-6 p-4 bg-blue-50 rounded border-l-4 border-blue-400">
-      <p class="font-bold text-sm text-gray-600 mb-1">Generated Tool ID:</p>
-      <p class="text-md font-mono text-blue-700">{{ generatedToolID }}</p>
+    <!-- Output Preview -->
+    <div v-if="generatedToolID" class="p-4 bg-blue-50 dark:bg-gray-700 rounded border-l-4 border-blue-400 dark:border-blue-500">
+      <p class="font-bold text-sm text-gray-600 dark:text-gray-300 mb-1">Generated Tool ID:</p>
+      <p class="text-md font-mono text-blue-700 dark:text-blue-400">{{ generatedToolID }}</p>
     </div>
 
-    <!-- Description Output -->
-    <div v-if="generatedDescription" class="mt-4 p-4 bg-gray-100 rounded border-l-4 border-blue-600">
-      <p class="font-bold text-sm text-gray-600 mb-1">Generated Description:</p>
-      <p class="text-md font-mono text-blue-700 break-words">{{ generatedDescription }}</p>
+    <div v-if="generatedDescription" class="p-4 bg-gray-100 dark:bg-gray-700 rounded border-l-4 border-blue-600 dark:border-blue-500">
+      <p class="font-bold text-sm text-gray-600 dark:text-gray-300 mb-1">Generated Description:</p>
+      <p class="text-md font-mono text-blue-700 dark:text-blue-400">{{ generatedDescription }}</p>
     </div>
 
-    <!-- Save Tool -->
-    <div v-if="generatedToolID && generatedDescription" class="mt-4 flex items-center gap-4">
-      <button @click="saveToLibrary" :disabled="isSaving" class="bg-green-600 text-white font-semibold px-4 py-2 rounded hover:bg-green-700">
+    <!-- Save Button -->
+    <div v-if="generatedToolID && generatedDescription" class="flex items-center gap-4">
+      <button
+        @click="saveToLibrary"
+        :disabled="isSaving"
+        class="bg-green-600 text-white font-semibold px-4 py-2 rounded hover:bg-green-700"
+      >
         💾 Save to Tool Library
       </button>
-      <span class="text-sm text-gray-700">{{ saveStatus }}</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300">{{ saveStatus }}</span>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore'
-import { getAuth } from 'firebase/auth'
+import { getFirestore, doc, getDoc, collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore'
+import { auth } from '@/firebase/init'
 import toolDefinitionsJson from '@/assets/dang_tool_definitions.json'
 
 const db = getFirestore()
-const auth = getAuth()
 
 const toolDefinitions = ref(toolDefinitionsJson.tool_definitions)
 const selectedToolName = ref('')
@@ -94,6 +102,11 @@ const fieldValues = ref({})
 const unit = ref('imperial')
 const holderPlatform = ref('1')
 const buildNumber = ref('000')
+
+const userTeamId = ref('') // 🔥 Important for saving under teams
+
+const activeBtn = 'bg-blue-600 text-white px-2 py-1'
+const inactiveBtn = 'bg-white text-gray-700 dark:bg-gray-700 dark:text-gray-200 px-2 py-1'
 
 const activeTool = computed(() =>
   toolDefinitions.value.find(t => t.tool_name === selectedToolName.value)
@@ -133,20 +146,23 @@ const generatedToolID = computed(() => {
   return `${activeTool.value.abbreviation}-${holderPlatform.value}-${formattedSize.value}-${buildNumber.value}`
 })
 
+// 🔥 Watch teamId and generate new build numbers
 watch(activeTool, async (tool) => {
   if (tool?.unit) unit.value = tool.unit
 
-  const baseID = `${tool.abbreviation}-${holderPlatform.value}-${formattedSize.value}`
-  const q = query(collection(db, 'tool_library'), where('tool_id', '>=', baseID))
-  const docs = await getDocs(q)
-  const matching = docs.docs.map(doc => doc.data().tool_id).filter(id => id.startsWith(baseID))
+  if (userTeamId.value && tool) {
+    const baseID = `${tool.abbreviation}-${holderPlatform.value}-${formattedSize.value}`
+    const q = query(collection(db, `teams/${userTeamId.value}/tools`), where('tool_id', '>=', baseID))
+    const docs = await getDocs(q)
+    const matching = docs.docs.map(doc => doc.data().tool_id).filter(id => id.startsWith(baseID))
 
-  if (matching.length > 0) {
-    const numbers = matching.map(id => parseInt(id.split('-').pop())).filter(n => !isNaN(n))
-    const maxBuild = Math.max(...numbers)
-    buildNumber.value = String(maxBuild + 1).padStart(3, '0')
-  } else {
-    buildNumber.value = '000'
+    if (matching.length > 0) {
+      const numbers = matching.map(id => parseInt(id.split('-').pop())).filter(n => !isNaN(n))
+      const maxBuild = Math.max(...numbers)
+      buildNumber.value = String(maxBuild + 1).padStart(3, '0')
+    } else {
+      buildNumber.value = '000'
+    }
   }
 })
 
@@ -154,19 +170,25 @@ const saveStatus = ref('')
 const isSaving = ref(false)
 
 const saveToLibrary = async () => {
+  if (!userTeamId.value) {
+    saveStatus.value = '❌ Team not found.'
+    return
+  }
   isSaving.value = true
   saveStatus.value = ''
   const tool_id = generatedToolID.value
+
   try {
-    const q = query(collection(db, 'tool_library'), where('tool_id', '==', tool_id))
+    const q = query(collection(db, `teams/${userTeamId.value}/tools`), where('tool_id', '==', tool_id))
     const existing = await getDocs(q)
+
     if (!tool_id || !generatedDescription.value || existing.size > 0) {
       saveStatus.value = existing.size > 0 ? '❌ Tool ID already exists.' : '❌ Incomplete tool info.'
       isSaving.value = false
       return
     }
 
-    await addDoc(collection(db, 'tool_library'), {
+    await addDoc(collection(db, `teams/${userTeamId.value}/tools`), {
       tool_id,
       description: generatedDescription.value,
       tool_type: selectedToolName.value,
@@ -186,6 +208,20 @@ const saveToLibrary = async () => {
     isSaving.value = false
   }
 }
+
+// Fetch teamId on mount
+import { onMounted } from 'vue'
+
+onMounted(async () => {
+  const currentUser = auth.currentUser
+  if (currentUser) {
+    const userRef = doc(db, 'users', currentUser.uid)
+    const userSnap = await getDoc(userRef)
+    if (userSnap.exists()) {
+      userTeamId.value = userSnap.data().teamId
+    }
+  }
+})
 </script>
 
 <style scoped>
