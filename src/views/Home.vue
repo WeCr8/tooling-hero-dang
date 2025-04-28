@@ -9,7 +9,7 @@
 
     <!-- Start App Button -->
     <button
-      @click="startApp"
+      @click="handleStartApp"
       class="inline-block bg-blue-600 text-white font-semibold px-8 py-3 rounded-full shadow hover:bg-blue-700 transition duration-200"
     >
       🚀 Start App
@@ -25,15 +25,16 @@ import { inject } from 'vue'
 const router = useRouter()
 const loginModalRef = inject('loginModalRef')
 
-const startApp = () => {
+const handleStartApp = () => {
   const auth = getAuth()
-  const user = auth.currentUser
 
-  if (user) {
-    router.push('/dashboard')
-  } else {
-    loginModalRef?.openLogin()
-  }
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      router.push('/dashboard')
+    } else {
+      loginModalRef?.openLogin()
+    }
+  })
 }
 </script>
 
