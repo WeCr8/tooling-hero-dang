@@ -8,8 +8,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@genkit-ai/googleai": "^1.7.0",
     "firebase": "^10.0.0",
     "firebaseui": "^6.1.0",
+    "genkit": "^1.7.0",
     "stripe": "^18.0.0",
     "vue": "^3.3.4",
     "vue-router": "^4.5.0"
