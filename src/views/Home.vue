@@ -1,19 +1,21 @@
 <template>
-  <section class="text-center py-20 px-4 max-w-5xl mx-auto">
-    <h1 class="text-4xl sm:text-5xl font-extrabold mb-4 text-gray-900 dark:text-white">
-      Welcome to <span class="text-blue-600 dark:text-blue-400">Tooling Hero</span>
-    </h1>
-    <p class="text-gray-600 dark:text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-      Intelligent Tooling for the Next Generation of Manufacturing.
-    </p>
+  <section class="bg-white pt-24 pb-32 text-center fade-in">
+    <div class="container mx-auto">
+      <h1 class="text-5xl font-extrabold text-gray-900 leading-tight mb-6">
+        Welcome to <span class="text-blue-600">Tooling Hero</span>
+      </h1>
+      <p class="text-lg text-gray-600 max-w-xl mx-auto mb-12">
+        Empowering manufacturers with smarter tooling workflows — from shop floor to digital twin.
+      </p>
 
-    <!-- Start App Button -->
-    <button
-      @click="handleStartApp"
-      class="inline-block bg-blue-600 text-white font-semibold px-8 py-3 rounded-full shadow hover:bg-blue-700 transition duration-200"
-    >
-      🚀 Start App
-    </button>
+      <!-- Start App Button -->
+      <button
+        @click="handleStartApp"
+        class="inline-block bg-blue-600 text-white font-semibold px-8 py-3 rounded-full shadow hover:bg-blue-700 transition duration-200"
+      >
+        🚀 Start App
+      </button>
+    </div>
   </section>
 </template>
 
@@ -39,7 +41,17 @@ const handleStartApp = () => {
 </script>
 
 <style scoped>
-section {
-  background: linear-gradient(to bottom, #f9fafb, #ffffff);
+.fade-in {
+  animation: fadeIn 0.8s ease-in-out both;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
