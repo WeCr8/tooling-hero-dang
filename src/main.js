@@ -1,16 +1,17 @@
+// main.js
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import clickOutside from '@/directives/clickOutside'
 import '@/assets/tailwind.css'
 
-// Create the app
+// Create Vue app instance
 const app = createApp(App)
 
-// Register global directives before mounting
+// Register custom directives
 app.directive('click-outside', clickOutside)
 
-// Use plugins like router, store
+// Register global plugins
 app.use(router)
 
 // Mount the app
