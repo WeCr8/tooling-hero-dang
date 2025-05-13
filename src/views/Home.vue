@@ -1,9 +1,12 @@
 <template>
   <section class="bg-white pt-24 pb-32 text-center fade-in">
     <div class="container mx-auto">
+      <!-- Main Heading -->
       <h1 class="text-5xl font-extrabold text-gray-900 leading-tight mb-6">
         Welcome to <span class="text-blue-600">Tooling Hero</span>
       </h1>
+
+      <!-- Subheading -->
       <p class="text-lg text-gray-600 max-w-xl mx-auto mb-12">
         Empowering manufacturers with smarter tooling workflows — from shop floor to digital twin.
       </p>
@@ -11,7 +14,7 @@
       <!-- Start App Button -->
       <button
         @click="handleStartApp"
-        class="inline-block bg-blue-600 text-white font-semibold px-8 py-3 rounded-full shadow hover:bg-blue-700 transition duration-200"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-full shadow transition duration-200"
       >
         🚀 Start App
       </button>
@@ -29,7 +32,6 @@ const loginModalRef = inject('loginModalRef')
 
 const handleStartApp = () => {
   const auth = getAuth()
-
   onAuthStateChanged(auth, (user) => {
     if (user) {
       router.push('/dashboard')
