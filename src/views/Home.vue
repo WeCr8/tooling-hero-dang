@@ -1,8 +1,8 @@
 <template>
-  <section class="bg-white pt-24 pb-32">
-    <div class="container text-center fade-in">
-      <!-- Hero Section -->
-      <h1 class="text-5xl font-extrabold text-gray-900 leading-tight mb-6">
+  <section class="bg-white pt-24 pb-32 text-center fade-in">
+    <div class="container mx-auto px-6">
+      <!-- Hero Heading -->
+      <h1 class="text-5xl font-extrabold text-gray-900 leading-tight mb-4">
         Welcome to <span class="text-blue-600">Tooling Hero</span>
       </h1>
       <p class="text-lg text-gray-600 max-w-xl mx-auto mb-12">
@@ -13,49 +13,59 @@
       <div class="mb-20">
         <button
           @click="handleStartApp"
-          class="btn-primary"
+          class="btn-primary inline-flex items-center justify-center"
+          :disabled="loading"
         >
-          🚀 Start App
+          <span v-if="loading" class="animate-spin mr-2">🔄</span>
+          <span>{{ loading ? 'Loading...' : '🚀 Start App' }}</span>
         </button>
       </div>
 
-      <!-- DANG Section -->
-      <div class="bg-gray-50 border border-blue-100 p-10 rounded-xl shadow-md max-w-3xl mx-auto">
-        <h2 class="text-3xl font-bold text-blue-800 mb-4">🔥 Meet DANG</h2>
-        <p class="text-gray-700 mb-8 leading-relaxed">
+      <!-- DANG Feature Block -->
+      <div class="bg-gray-50 border border-blue-100 p-10 rounded-xl shadow-md max-w-3xl mx-auto text-left">
+        <h2 class="text-3xl font-bold text-blue-800 mb-4 text-center">🔥 Meet DANG</h2>
+        <p class="text-gray-700 mb-8 leading-relaxed text-center">
           <strong>DANG</strong> (Description And Naming Generator) standardizes your tooling language across Zoller, Mastercam, and ERP systems — cutting confusion and boosting productivity.
         </p>
 
         <div class="flex flex-col sm:flex-row justify-center gap-4">
           <!-- Button with Login Logic -->
-          <button @click="handleStartApp" class="btn-primary">
+          <button @click="handleStartApp" class="btn-primary" :disabled="loading">
             ⚙️ Launch DANG
           </button>
 
-          <!-- Fallback Learn More -->
+          <!-- Learn More Route -->
           <router-link to="/about" class="btn-secondary">
             📘 Learn More
           </router-link>
         </div>
       </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-sm text-gray-400 mt-24">
+      © 2025 Tooling Hero by WeCr8 Solutions · All rights reserved
+    </footer>
   </section>
 </template>
 
 <script setup>
+import { ref, inject } from 'vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
-import { useRouter } from 'vue-router'
-import { inject } from 'vue'
 
-const router = useRouter()
 const loginModalRef = inject('loginModalRef')
+const loading = ref(false)
 
 const handleStartApp = () => {
   const auth = getAuth()
+  loading.value = true
+
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      router.push('/dashboard')
+      // 🚀 Cross-app redirect to DANG
+      window.location.href = 'https://dang.toolinghero.us/dashboard'
     } else {
+      loading.value = false
       loginModalRef?.openLogin()
     }
   })
@@ -77,9 +87,8 @@ const handleStartApp = () => {
   }
 }
 
-/* Reuse the same button styles as toolinghero.us */
 .btn-primary {
-  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-full shadow transition duration-200;
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-full shadow transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .btn-secondary {
