@@ -12,7 +12,7 @@
       <!-- Start App Button -->
       <div class="mb-20">
         <button
-          @click="handleStartApp"
+          @click="handleAuthStart"
           class="btn-primary inline-flex items-center justify-center"
           :disabled="loading"
         >
@@ -29,12 +29,12 @@
         </p>
 
         <div class="flex flex-col sm:flex-row justify-center gap-4">
-          <!-- Button with Login Logic -->
-          <button @click="handleStartApp" class="btn-primary" :disabled="loading">
+          <!-- Launch DANG Button -->
+          <button @click="handleAuthStart" class="btn-primary" :disabled="loading">
             ⚙️ Launch DANG
           </button>
 
-          <!-- Learn More Route -->
+          <!-- Learn More -->
           <router-link to="/about" class="btn-secondary">
             📘 Learn More
           </router-link>
@@ -51,19 +51,20 @@
 
 <script setup>
 import { ref, inject } from 'vue'
+import { useRouter } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 
+const router = useRouter()
 const loginModalRef = inject('loginModalRef')
 const loading = ref(false)
 
-const handleStartApp = () => {
+const handleAuthStart = () => {
   const auth = getAuth()
   loading.value = true
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      // 🚀 Cross-app redirect to DANG
-      window.location.href = 'https://dang.toolinghero.us/dashboard'
+      router.push('/dashboard')
     } else {
       loading.value = false
       loginModalRef?.openLogin()
