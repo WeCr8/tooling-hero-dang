@@ -62,13 +62,12 @@
       <div v-if="activeTool" class="space-y-4 mt-4">
         <div v-for="field in extractedFields" :key="field">
           <label class="block text-sm font-medium mb-1">
-            {{ field }} <span class="text-gray-400 text-xs">{{ unit === 'imperial' ? '(in)' : '(mm)' }}</span>
+            {{ field.label }} <span class="text-gray-400 text-xs">{{ unit === 'imperial' ? '(in)' : '(mm)' }}</span>
           </label>
           <input
-            :value="fieldValues[field]"
-            @input="fieldValues[field] = $event.target.value"
+            v-model="fieldValues[field.key]"
             class="input"
-            :placeholder="'Enter ' + field"
+            :placeholder="'Enter ' + field.label"
           />
         </div>
       </div>
@@ -95,14 +94,12 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { db } from '@/firebase/init';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import toolDefinitionsJson from '@/assets/dang_tool_definitions.json';
+import { useAuth } from '@/composables/useAuth';
 
-// Example tool definitions (replace with your actual data or import)
-const toolDefinitions = ref([
-  { tool_name: 'End Mill', abbreviation: 'EM' },
-  { tool_name: 'Drill', abbreviation: 'DR' },
-  { tool_name: 'Reamer', abbreviation: 'RM' }
-]);
-
+const { user, teamId } = useAuth();
 const onboardingMode = ref('');
 const selectedToolName = ref('');
 const unit = ref('imperial');
@@ -110,13 +107,12 @@ const holderPlatform = ref('1');
 const fieldValues = ref({});
 const isSaving = ref(false);
 const saveStatus = ref('');
+const toolDefinitions = ref(toolDefinitionsJson.tool_definitions);
 
 const activeBtn = 'bg-blue-600 text-white px-3 py-1 rounded';
 const inactiveBtn = 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 px-3 py-1 rounded';
 
-const setMode = (mode) => {
-  onboardingMode.value = mode;
-};
+const setMode = (mode) => { onboardingMode.value = mode; };
 const resetMode = () => {
   onboardingMode.value = '';
   selectedToolName.value = '';
@@ -131,32 +127,40 @@ const activeTool = computed(() =>
 );
 
 const extractedFields = computed(() => {
-  // Example: fields based on tool type, replace with your logic
   if (!activeTool.value) return [];
-  if (activeTool.value.tool_name === 'End Mill') return ['Diameter', 'Length'];
-  if (activeTool.value.tool_name === 'Drill') return ['Diameter', 'Flute Length'];
-  if (activeTool.value.tool_name === 'Reamer') return ['Diameter', 'Overall Length'];
-  return [];
+  return activeTool.value.description_formula.match(/\{([^}]+)\}/g)?.map(key => {
+    const cleanKey = key.replace(/[{}]/g, '');
+    return { label: cleanKey.replace(/_/g, ' '), key: cleanKey };
+  }) || [];
 });
 
 const generatedToolID = computed(() => {
   if (!activeTool.value) return '';
-  // Example: generate ID from abbreviation and field values
-  const fields = extractedFields.value.map(f => fieldValues.value[f] || '').join('-');
-  return `[${activeTool.value.abbreviation}]${fields ? '-' + fields : ''}`;
+  const base = `[${activeTool.value.abbreviation}]`;
+  const segments = extractedFields.value.map(f => fieldValues.value[f.key] || '').filter(Boolean);
+  return base + (segments.length ? '-' + segments.join('-') : '');
 });
 
 const generatedDescription = computed(() => {
   if (!activeTool.value) return '';
-  // Example: generate description
-  return `${activeTool.value.tool_name} (${unit.value}), Holder: ${holderPlatform.value}`;
+  const raw = activeTool.value.description_formula;
+  return raw.replace(/\{([^}]+)\}/g, (_, key) => fieldValues.value[key] || '?');
 });
 
 const saveToLibrary = async () => {
+  if (!user.value || !teamId.value) return;
   isSaving.value = true;
   saveStatus.value = 'Saving...';
-  // Simulate save
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await addDoc(collection(db, 'teams', teamId.value, 'tools'), {
+    tool_name: selectedToolName.value,
+    tool_id: generatedToolID.value,
+    description: generatedDescription.value,
+    unit: unit.value,
+    holder_platform: holderPlatform.value,
+    fields: fieldValues.value,
+    created_by: user.value.uid,
+    created_at: serverTimestamp()
+  });
   saveStatus.value = 'Saved!';
   isSaving.value = false;
 };
